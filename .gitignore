@@ -2,3 +2,8 @@ __pycache__
 */__pycache__
 experiments_out
 configs/hydra/cluster.yaml
+
+# 忽略模型文件
+*.pth
+*.safetensors
+scene/model_cache/
