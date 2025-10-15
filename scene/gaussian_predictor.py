@@ -10,6 +10,7 @@ from einops import rearrange, repeat
 
 from utils.general_utils import matrix_to_quaternion, quaternion_raw_multiply
 from utils.graphics_utils import fov2focal
+from scene.feature_fusion import MultiScaleDPTFusion
 
 # U-Net implementation from EDM
 # Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
@@ -298,6 +299,8 @@ class SongUNet(nn.Module):
         encoder_type        = 'standard',   # Encoder architecture: 'standard' for DDPM++, 'residual' for NCSN++.
         decoder_type        = 'standard',   # Decoder architecture: 'standard' for both DDPM++ and NCSN++.
         resample_filter     = [1,1],        # Resampling filter: [1,1] for DDPM++, [1,3,3,1] for NCSN++.
+        use_dpt_fusion      = False,        # Whether to use DPT feature fusion.
+        dpt_model_path      = None,         # Path to DPT model.
     ):
         assert embedding_type in ['fourier', 'positional']
         assert encoder_type in ['standard', 'skip', 'residual']
@@ -306,6 +309,7 @@ class SongUNet(nn.Module):
         super().__init__()
         self.label_dropout = label_dropout
         self.emb_dim_in = emb_dim_in
+        self.use_dpt_fusion = use_dpt_fusion
         if emb_dim_in > 0:
             emb_channels = model_channels * channel_mult_emb
         else:
@@ -378,7 +382,16 @@ class SongUNet(nn.Module):
                 self.dec[f'{res}x{res}_aux_norm'] = GroupNorm(num_channels=cout, eps=1e-6)
                 self.dec[f'{res}x{res}_aux_conv'] = Conv2d(in_channels=cout, out_channels=out_channels, kernel=3, init_weight=0.2, **init)# init_zero)
 
-    def forward(self, x, film_camera_emb=None, N_views_xa=1):
+        # DPT特征融合模块
+        if self.use_dpt_fusion:
+            # 计算UNet encoder最后一层的通道数
+            encoder_final_channels = model_channels * channel_mult[-1]
+            self.dpt_fusion = MultiScaleDPTFusion(
+                unet_feature_dim=encoder_final_channels,
+                dpt_model_path=dpt_model_path
+            )
+
+    def forward(self, x, film_camera_emb=None, N_views_xa=1, input_images=None):
 
         emb = None
 
@@ -404,6 +417,14 @@ class SongUNet(nn.Module):
                 x = block(x, emb=emb, N_views_xa=N_views_xa) if isinstance(block, UNetBlock) \
                     else block(x, N_views_xa=N_views_xa)
                 skips.append(x)
+
+        # DPT特征融合
+        if self.use_dpt_fusion and input_images is not None:
+            # 获取encoder最后一层特征进行DPT融合
+            encoder_final_features = skips[-1]  # 最后一层encoder特征
+            fused_features = self.dpt_fusion(encoder_final_features, input_images)
+            # 用融合后的特征替换最后一层特征
+            skips[-1] = fused_features
 
         # Decoder.
         aux = None
@@ -440,6 +461,10 @@ class SingleImageSongUNetPredictor(nn.Module):
             in_channels = 3
             emb_dim_in = 6 * cfg.cam_embd.dimension
 
+        # 检查是否使用DPT融合
+        use_dpt_fusion = getattr(cfg.model, 'use_dpt_fusion', False)
+        dpt_model_path = getattr(cfg.model, 'dpt_model_path', None)
+
         self.encoder = SongUNet(cfg.data.training_resolution, 
                                 in_channels, 
                                 sum(out_channels),
@@ -447,7 +472,9 @@ class SingleImageSongUNetPredictor(nn.Module):
                                 num_blocks=cfg.model.num_blocks,
                                 emb_dim_in=emb_dim_in,
                                 channel_mult_noise=0,
-                                attn_resolutions=cfg.model.attention_resolutions)
+                                attn_resolutions=cfg.model.attention_resolutions,
+                                use_dpt_fusion=use_dpt_fusion,
+                                dpt_model_path=dpt_model_path)
         self.out = nn.Conv2d(in_channels=sum(out_channels), 
                                  out_channels=sum(out_channels),
                                  kernel_size=1)
@@ -464,7 +491,8 @@ class SingleImageSongUNetPredictor(nn.Module):
     def forward(self, x, film_camera_emb=None, N_views_xa=1):
         x = self.encoder(x, 
                          film_camera_emb=film_camera_emb,
-                         N_views_xa=N_views_xa)
+                         N_views_xa=N_views_xa,
+                         input_images=x)
 
         return self.out(x)
 

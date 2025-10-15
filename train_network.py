@@ -67,6 +67,20 @@ def main(cfg: DictConfig):
          'lr': cfg.opt.base_lr})
     optimizer = torch.optim.Adam(l, lr=0.0, eps=1e-15, 
                                  betas=cfg.opt.betas)
+    
+    # 添加学习率调度器
+    if getattr(cfg.opt, 'warmup_steps', 0) > 0:
+        def lr_lambda(step):
+            if step < cfg.opt.warmup_steps:
+                return step / cfg.opt.warmup_steps
+            elif step < getattr(cfg.opt, 'lr_decay_steps', cfg.opt.iterations):
+                return 1.0
+            else:
+                return 0.1  # 衰减到原来的10%
+        
+        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+    else:
+        scheduler = None
 
     # Resuming training
     if fabric.is_global_zero:
@@ -114,6 +128,9 @@ def main(cfg: DictConfig):
         lpips_fn = fabric.to_device(lpips_lib.LPIPS(net='vgg'))
     lambda_lpips = cfg.opt.lambda_lpips
     lambda_l12 = 1.0 - lambda_lpips
+
+    # 简化：不使用复杂的DPT损失函数
+    dpt_loss_fn = None
 
     bg_color = [1, 1, 1] if cfg.data.white_background else [0, 0, 0]
     background = torch.tensor(bg_color, dtype=torch.float32)
@@ -240,12 +257,30 @@ def main(cfg: DictConfig):
             if cfg.data.category == "hydrants" or cfg.data.category == "teddybears":
                 total_loss = total_loss + big_gaussian_reg_loss + small_gaussian_reg_loss
 
+            # 渐进式DPT融合训练
+            if getattr(cfg.opt, 'progressive_training', False) and getattr(cfg.model, 'use_dpt_fusion', False):
+                fusion_warmup_steps = getattr(cfg.opt, 'fusion_warmup_steps', 2000)
+                if iteration < fusion_warmup_steps:
+                    # 在预热阶段，逐渐增加DPT融合的权重
+                    fusion_weight = min(iteration / fusion_warmup_steps, 1.0)
+                    # 这里可以添加渐进式融合的逻辑
+                    pass
+
             assert not total_loss.isnan(), "Found NaN loss!"
             print("finished forward {} on process {}".format(iteration, fabric.global_rank))
             fabric.backward(total_loss)
 
             # ============ Optimization ===============
+            # 梯度裁剪
+            if getattr(cfg.opt, 'gradient_clip_val', 0) > 0:
+                torch.nn.utils.clip_grad_norm_(gaussian_predictor.parameters(), cfg.opt.gradient_clip_val)
+            
             optimizer.step()
+            
+            # 学习率调度
+            if scheduler is not None:
+                scheduler.step()
+            
             optimizer.zero_grad()
             print("finished opt {} on process {}".format(iteration, fabric.global_rank))
 

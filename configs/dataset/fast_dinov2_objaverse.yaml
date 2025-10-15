@@ -13,5 +13,7 @@ data:
   fov: 49.134342641202636
 
 opt:
-  batch_size: 16
-  iterations: 350001
+  batch_size: 4  # 小批量，适合低内存 GPU
+  iterations: 5000  # 快速训练 5000 步
+  lr: 0.0001  # 学习率（参考默认配置）
+  save_interval: 1000  # 每 1000 步保存 checkpoint
