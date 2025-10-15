@@ -2,6 +2,7 @@ __pycache__
 */__pycache__
 experiments_out
 scene/model_cache
+diff-gaussian-rasterization
 configs/hydra/cluster.yaml
 
 # 忽略模型文件
