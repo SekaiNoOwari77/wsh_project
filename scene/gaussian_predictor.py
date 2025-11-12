@@ -391,7 +391,7 @@ class SongUNet(nn.Module):
                 dpt_model_path=dpt_model_path
             )
 
-    def forward(self, x, film_camera_emb=None, N_views_xa=1, input_images=None):
+    def forward(self, x, film_camera_emb=None, N_views_xa=1, input_images=None, return_dpt_features=False):
 
         emb = None
 
@@ -419,9 +419,19 @@ class SongUNet(nn.Module):
                 skips.append(x)
 
         # DPT特征融合
+        dpt_features = None
+        unet_features = None
+        fused_features = None
+        
         if self.use_dpt_fusion and input_images is not None:
             # 获取encoder最后一层特征进行DPT融合
             encoder_final_features = skips[-1]  # 最后一层encoder特征
+            unet_features = encoder_final_features
+            
+            # 提取DPT特征
+            if return_dpt_features:
+                dpt_features = self.dpt_fusion.dpt_extractor(input_images)
+            
             fused_features = self.dpt_fusion(encoder_final_features, input_images)
             # 用融合后的特征替换最后一层特征
             skips[-1] = fused_features
@@ -444,7 +454,11 @@ class SongUNet(nn.Module):
                     # but it's not good for gradient flow and background features
                     x = torch.cat([x, skips.pop()], dim=1)
                 x = block(x, emb=emb, N_views_xa=N_views_xa)
-        return aux
+        
+        if return_dpt_features and self.use_dpt_fusion:
+            return aux, dpt_features, unet_features, fused_features
+        else:
+            return aux
 
 # ================== End of implementation taken from EDM ===============
 # NVIDIA copyright does not apply to the code below this line
@@ -488,13 +502,21 @@ class SingleImageSongUNetPredictor(nn.Module):
                 self.out.bias[start_channels:start_channels+out_channel], b)
             start_channels += out_channel
 
-    def forward(self, x, film_camera_emb=None, N_views_xa=1):
-        x = self.encoder(x, 
+    def forward(self, x, film_camera_emb=None, N_views_xa=1, return_dpt_features=False):
+        encoder_output = self.encoder(x, 
                          film_camera_emb=film_camera_emb,
                          N_views_xa=N_views_xa,
-                         input_images=x)
+                         input_images=x,
+                         return_dpt_features=return_dpt_features)
 
-        return self.out(x)
+        if return_dpt_features and isinstance(encoder_output, tuple):
+            # 返回DPT特征
+            encoder_features, dpt_features, unet_features, fused_features = encoder_output
+            output = self.out(encoder_features)
+            return output, dpt_features, unet_features, fused_features
+        else:
+            # 正常返回
+            return self.out(encoder_output)
 
 def networkCallBack(cfg, name, out_channels, **kwargs):
     if name == "SingleUNet":
@@ -714,7 +736,8 @@ class GaussianSplatPredictor(nn.Module):
                 source_cameras_view_to_world, 
                 source_cv2wT_quat=None,
                 focals_pixels=None,
-                activate_output=True):
+                activate_output=True,
+                return_dpt_features=False):
 
         B = x.shape[0]
         N_views = x.shape[1]
@@ -747,14 +770,23 @@ class GaussianSplatPredictor(nn.Module):
         source_cameras_view_to_world = source_cameras_view_to_world.reshape(B*N_views, *source_cameras_view_to_world.shape[2:])
         x = x.contiguous(memory_format=torch.channels_last)
 
+        # 存储DPT特征用于损失计算
+        dpt_features = None
+        unet_features = None
+        fused_features = None
+        
         if self.cfg.model.network_with_offset:
+            network_output = self.network_with_offset(x,
+                                                     film_camera_emb=film_camera_emb,
+                                                     N_views_xa=N_views_xa,
+                                                     return_dpt_features=return_dpt_features)
 
-            split_network_outputs = self.network_with_offset(x,
-                                                             film_camera_emb=film_camera_emb,
-                                                             N_views_xa=N_views_xa
-                                                             )
-
-            split_network_outputs = split_network_outputs.split(self.split_dimensions_with_offset, dim=1)
+            if return_dpt_features and isinstance(network_output, tuple):
+                split_network_outputs, dpt_features, unet_features, fused_features = network_output
+                split_network_outputs = split_network_outputs.split(self.split_dimensions_with_offset, dim=1)
+            else:
+                split_network_outputs = network_output.split(self.split_dimensions_with_offset, dim=1)
+                
             depth, offset, opacity, scaling, rotation, features_dc = split_network_outputs[:6]
             if self.cfg.model.max_sh_degree > 0:
                 features_rest = split_network_outputs[6]
@@ -762,10 +794,16 @@ class GaussianSplatPredictor(nn.Module):
             pos = self.get_pos_from_network_output(depth, offset, focals_pixels, const_offset=const_offset)
 
         else:
-            split_network_outputs = self.network_wo_offset(x, 
-                                                           film_camera_emb=film_camera_emb,
-                                                           N_views_xa=N_views_xa
-                                                           ).split(self.split_dimensions_without_offset, dim=1)
+            network_output = self.network_wo_offset(x, 
+                                                   film_camera_emb=film_camera_emb,
+                                                   N_views_xa=N_views_xa,
+                                                   return_dpt_features=return_dpt_features)
+
+            if return_dpt_features and isinstance(network_output, tuple):
+                split_network_outputs, dpt_features, unet_features, fused_features = network_output
+                split_network_outputs = split_network_outputs.split(self.split_dimensions_without_offset, dim=1)
+            else:
+                split_network_outputs = network_output.split(self.split_dimensions_without_offset, dim=1)
 
             depth, opacity, scaling, rotation, features_dc = split_network_outputs[:5]
             if self.cfg.model.max_sh_degree > 0:
@@ -821,4 +859,15 @@ class GaussianSplatPredictor(nn.Module):
         out_dict = self.multi_view_union(out_dict, B, N_views)
         out_dict = self.make_contiguous(out_dict)
 
-        return out_dict
+        if return_dpt_features and dpt_features is not None:
+            # 将DPT特征也进行多视图合并
+            dpt_features_dict = {
+                'dpt_features': dpt_features,
+                'unet_features': unet_features,
+                'fused_features': fused_features
+            }
+            dpt_features_dict = self.multi_view_union(dpt_features_dict, B, N_views)
+            dpt_features_dict = self.make_contiguous(dpt_features_dict)
+            return out_dict, dpt_features_dict
+        else:
+            return out_dict

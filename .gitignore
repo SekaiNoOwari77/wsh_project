@@ -3,9 +3,11 @@ __pycache__
 experiments_out
 scene/model_cache
 diff-gaussian-rasterization
-configs/hydra/cluster.yaml
+DPT_img
+
 
 # 忽略模型文件
+*.mp4
 *.pth
 *.safetensors
 scene/model_cache/

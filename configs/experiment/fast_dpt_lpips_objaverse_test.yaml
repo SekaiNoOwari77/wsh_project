@@ -1,0 +1,33 @@
+# @package _global_
+general:
+  num_devices: 1
+  mixed_precision: true
+
+data:
+  znear: 0.8
+  zfar: 3.2
+  category: objaverse
+  white_background: true
+  origin_distances: false
+  training_resolution: 128
+  fov: 49.134342641202636
+
+opt:
+  batch_size: 8
+  iterations: 100001
+  pretrained_ckpt: /202421000505/wsh_project/refine_splatter/splatter-image_dpt/experiments_out/base_model/
+  lambda_lpips: 0.34           # 提升感知质量，辅助DPT对结构的增强
+  base_lr: 0.00006
+  save_interval: 1000
+  warmup_steps: 1000
+  lr_decay_steps: 15000
+  gradient_clip_val: 0.5
+  progressive_training: true
+  fusion_warmup_steps: 1000    # 延后融合，先稳住重建再引入DPT
+
+model:
+  use_dpt_fusion: true
+  dpt_model_path: "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/model_cache/Depth-Anything-v2"
+  dpt_depth_weight: 2.0        # 适中权重：鼓励深度合理但不过拟合
+  dpt_consistency_weight: 18.0
+  dpt_fusion_weight: 36.0

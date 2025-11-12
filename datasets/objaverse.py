@@ -15,8 +15,10 @@ from utils.graphics_utils import getProjectionMatrix, fov2focal  # 图形学工�
 from utils.camera_utils import get_loop_cameras  # 相机工具函数
 
 # 数据集路径配置（需要用户修改）
-OBJAVERSE_ROOT = "/202421000505/wsh_project/refine_splatter/Objaverse/views_release"  # 修改为你的数据目录路径
-OBJAVERSE_LVIS_ANNOTATION_PATH = "/202421000505/wsh_project/refine_splatter/Objaverse/mini.json"  # 修改为过滤用的.json文件路径
+OBJAVERSE_ROOT = "/202421000505/wsh_project/Dataset_Objaverse/views_release/"  # 修改为你的数据目录路径
+OBJAVERSE_LVIS_ANNOTATION_PATH = "/202421000505/wsh_project/Dataset_Objaverse/200GB_Objaverse.json"  # 修改为过滤用的.json文件路径
+# OBJAVERSE_ROOT = "/202421000505/wsh_project/refine_splatter/Objaverse/views_release/"  # 修改为你的数据目录路径
+# OBJAVERSE_LVIS_ANNOTATION_PATH = "/202421000505/wsh_project/refine_splatter/Objaverse/mini.json"  # 修改为过滤用的.json文件路径
 assert OBJAVERSE_ROOT is not None, "Update dataset path"
 assert OBJAVERSE_LVIS_ANNOTATION_PATH is not None, "Update filtering .json path"
 

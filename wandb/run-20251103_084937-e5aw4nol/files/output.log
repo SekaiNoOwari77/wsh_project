@@ -1,0 +1,230 @@
+Loading DPT model from /202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/model_cache/dpt-large [03/11 08:49:39]
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off] [03/11 08:49:40]
+/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=VGG16_Weights.IMAGENET1K_V1`. You can also use `weights=VGG16_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Loading model from: /opt/conda/envs/splatter-image/lib/python3.8/site-packages/lpips/weights/v0.1/vgg.pth [03/11 08:49:42]
+============= length of dataset 39600 ============= [03/11 08:49:42]
+============= length of dataset 400 ============= [03/11 08:49:42]
+============= length of dataset 400 ============= [03/11 08:49:42]
+Beginning training [03/11 08:49:42]
+starting iteration 2 on process 0 [03/11 08:49:44]
+finished forward 2 on process 0 [03/11 08:49:45]
+/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/optim/lr_scheduler.py:136: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  warnings.warn("Detected call of `lr_scheduler.step()` before `optimizer.step()`. "
+finished opt 2 on process 0 [03/11 08:49:46]
+finished iteration 2 on process 0 [03/11 08:49:46]
+starting iteration 3 on process 0 [03/11 08:49:46]
+finished forward 3 on process 0 [03/11 08:49:47]
+finished opt 3 on process 0 [03/11 08:49:47]
+finished iteration 3 on process 0 [03/11 08:49:47]
+starting iteration 4 on process 0 [03/11 08:49:47]
+finished forward 4 on process 0 [03/11 08:49:48]
+finished opt 4 on process 0 [03/11 08:49:48]
+finished iteration 4 on process 0 [03/11 08:49:48]
+starting iteration 5 on process 0 [03/11 08:49:48]
+finished forward 5 on process 0 [03/11 08:49:49]
+finished opt 5 on process 0 [03/11 08:49:49]
+finished iteration 5 on process 0 [03/11 08:49:49]
+starting iteration 6 on process 0 [03/11 08:49:49]
+finished forward 6 on process 0 [03/11 08:49:50]
+finished opt 6 on process 0 [03/11 08:49:50]
+finished iteration 6 on process 0 [03/11 08:49:50]
+starting iteration 7 on process 0 [03/11 08:49:50]
+finished forward 7 on process 0 [03/11 08:49:50]
+finished opt 7 on process 0 [03/11 08:49:51]
+finished iteration 7 on process 0 [03/11 08:49:51]
+starting iteration 8 on process 0 [03/11 08:49:51]
+finished forward 8 on process 0 [03/11 08:49:51]
+finished opt 8 on process 0 [03/11 08:49:52]
+finished iteration 8 on process 0 [03/11 08:49:52]
+starting iteration 9 on process 0 [03/11 08:49:52]
+finished forward 9 on process 0 [03/11 08:49:52]
+finished opt 9 on process 0 [03/11 08:49:53]
+finished iteration 9 on process 0 [03/11 08:49:53]
+starting iteration 10 on process 0 [03/11 08:49:53]
+finished forward 10 on process 0 [03/11 08:49:53]
+finished opt 10 on process 0 [03/11 08:49:54]
+finished iteration 10 on process 0 [03/11 08:49:54]
+starting iteration 11 on process 0 [03/11 08:49:54]
+finished forward 11 on process 0 [03/11 08:49:54]
+finished opt 11 on process 0 [03/11 08:49:55]
+finished iteration 11 on process 0 [03/11 08:49:55]
+starting iteration 12 on process 0 [03/11 08:49:55]
+finished forward 12 on process 0 [03/11 08:49:55]
+finished opt 12 on process 0 [03/11 08:49:56]
+finished iteration 12 on process 0 [03/11 08:49:56]
+starting iteration 13 on process 0 [03/11 08:49:56]
+finished forward 13 on process 0 [03/11 08:49:56]
+finished opt 13 on process 0 [03/11 08:49:56]
+finished iteration 13 on process 0 [03/11 08:49:56]
+starting iteration 14 on process 0 [03/11 08:49:57]
+finished forward 14 on process 0 [03/11 08:49:57]
+finished opt 14 on process 0 [03/11 08:49:57]
+finished iteration 14 on process 0 [03/11 08:49:57]
+starting iteration 15 on process 0 [03/11 08:49:57]
+finished forward 15 on process 0 [03/11 08:49:58]
+finished opt 15 on process 0 [03/11 08:49:58]
+finished iteration 15 on process 0 [03/11 08:49:58]
+starting iteration 16 on process 0 [03/11 08:49:58]
+finished forward 16 on process 0 [03/11 08:49:59]
+finished opt 16 on process 0 [03/11 08:49:59]
+finished iteration 16 on process 0 [03/11 08:49:59]
+starting iteration 17 on process 0 [03/11 08:49:59]
+finished forward 17 on process 0 [03/11 08:50:00]
+finished opt 17 on process 0 [03/11 08:50:00]
+finished iteration 17 on process 0 [03/11 08:50:00]
+starting iteration 18 on process 0 [03/11 08:50:00]
+finished forward 18 on process 0 [03/11 08:50:01]
+finished opt 18 on process 0 [03/11 08:50:01]
+finished iteration 18 on process 0 [03/11 08:50:01]
+starting iteration 19 on process 0 [03/11 08:50:01]
+finished forward 19 on process 0 [03/11 08:50:02]
+finished opt 19 on process 0 [03/11 08:50:02]
+finished iteration 19 on process 0 [03/11 08:50:02]
+starting iteration 20 on process 0 [03/11 08:50:02]
+finished forward 20 on process 0 [03/11 08:50:03]
+finished opt 20 on process 0 [03/11 08:50:03]
+finished iteration 20 on process 0 [03/11 08:50:03]
+starting iteration 21 on process 0 [03/11 08:50:03]
+finished forward 21 on process 0 [03/11 08:50:04]
+finished opt 21 on process 0 [03/11 08:50:04]
+finished iteration 21 on process 0 [03/11 08:50:04]
+starting iteration 22 on process 0 [03/11 08:50:04]
+finished forward 22 on process 0 [03/11 08:50:05]
+finished opt 22 on process 0 [03/11 08:50:05]
+finished iteration 22 on process 0 [03/11 08:50:05]
+starting iteration 23 on process 0 [03/11 08:50:05]
+Traceback (most recent call last):
+  File "train_network.py", line 458, in <module>
+    main()
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/_internal/hydra.py", line 119, in run
+    ret = run_job(
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+  File "train_network.py", line 209, in main
+    gaussian_splats, dpt_features_dict = gaussian_predictor(input_images,
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/lightning/fabric/wrappers.py", line 110, in forward
+    output = self._forward_module(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/parallel/distributed.py", line 1519, in forward
+    else self._run_ddp_forward(*inputs, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/parallel/distributed.py", line 1355, in _run_ddp_forward
+    return self.module(*inputs, **kwargs)  # type: ignore[index]
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/gaussian_predictor.py", line 779, in forward
+    network_output = self.network_with_offset(x,
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/gaussian_predictor.py", line 506, in forward
+    encoder_output = self.encoder(x,
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/gaussian_predictor.py", line 456, in forward
+    x = block(x, emb=emb, N_views_xa=N_views_xa)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/gaussian_predictor.py", line 246, in forward
+    x = silu(self.norm1(x))
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/gaussian_predictor.py", line 112, in forward
+    x = torch.nn.functional.group_norm(x, num_groups=self.num_groups, weight=self.weight.to(x.dtype), bias=self.bias.to(x.dtype), eps=self.eps)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/functional.py", line 2558, in group_norm
+    return torch.group_norm(input, num_groups, weight, bias, eps, torch.backends.cudnn.enabled)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "train_network.py", line 458, in <module>
+    main()
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/_internal/hydra.py", line 119, in run
+    ret = run_job(
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+  File "train_network.py", line 209, in main
+    gaussian_splats, dpt_features_dict = gaussian_predictor(input_images,
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/lightning/fabric/wrappers.py", line 110, in forward
+    output = self._forward_module(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/parallel/distributed.py", line 1519, in forward
+    else self._run_ddp_forward(*inputs, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/parallel/distributed.py", line 1355, in _run_ddp_forward
+    return self.module(*inputs, **kwargs)  # type: ignore[index]
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/gaussian_predictor.py", line 779, in forward
+    network_output = self.network_with_offset(x,
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/gaussian_predictor.py", line 506, in forward
+    encoder_output = self.encoder(x,
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/gaussian_predictor.py", line 456, in forward
+    x = block(x, emb=emb, N_views_xa=N_views_xa)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/gaussian_predictor.py", line 246, in forward
+    x = silu(self.norm1(x))
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/gaussian_predictor.py", line 112, in forward
+    x = torch.nn.functional.group_norm(x, num_groups=self.num_groups, weight=self.weight.to(x.dtype), bias=self.bias.to(x.dtype), eps=self.eps)
+  File "/opt/conda/envs/splatter-image/lib/python3.8/site-packages/torch/nn/functional.py", line 2558, in group_norm
+    return torch.group_norm(input, num_groups, weight, bias, eps, torch.backends.cudnn.enabled)
+KeyboardInterrupt

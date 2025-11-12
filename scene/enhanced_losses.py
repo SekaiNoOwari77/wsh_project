@@ -56,14 +56,32 @@ class FeatureConsistencyLoss(nn.Module):
         计算特征一致性损失
         Args:
             unet_features: UNet特征 [B, C, H, W]
-            dpt_features: DPT特征 [B, C, H, W]
+            dpt_features: DPT特征 [B, C', H', W']
         Returns:
             loss: 特征一致性损失
         """
         # 确保特征尺寸一致
         if unet_features.shape != dpt_features.shape:
+            # 调整DPT特征到UNet特征的尺寸
             dpt_features = F.interpolate(dpt_features, size=unet_features.shape[-2:], 
                                        mode='bilinear', align_corners=False)
+            
+            # 如果通道数不匹配，使用平均池化来调整通道数
+            if dpt_features.shape[1] != unet_features.shape[1]:
+                if dpt_features.shape[1] > unet_features.shape[1]:
+                    # DPT特征通道数更多，使用1x1卷积降维
+                    if not hasattr(self, 'dpt_projection'):
+                        self.dpt_projection = nn.Conv2d(dpt_features.shape[1], unet_features.shape[1], 
+                                                      kernel_size=1).to(dpt_features.device)
+                    dpt_features = self.dpt_projection(dpt_features)
+                else:
+                    # DPT特征通道数更少，重复通道
+                    repeat_factor = unet_features.shape[1] // dpt_features.shape[1]
+                    remainder = unet_features.shape[1] % dpt_features.shape[1]
+                    dpt_features = dpt_features.repeat(1, repeat_factor, 1, 1)
+                    if remainder > 0:
+                        padding = dpt_features[:, :remainder, :, :]
+                        dpt_features = torch.cat([dpt_features, padding], dim=1)
         
         # 计算特征相似性
         similarity = F.cosine_similarity(unet_features, dpt_features, dim=1)
@@ -85,14 +103,32 @@ class AdaptiveFusionLoss(nn.Module):
         Args:
             fused_features: 融合后特征 [B, C, H, W]
             unet_features: UNet特征 [B, C, H, W]
-            dpt_features: DPT特征 [B, C, H, W]
+            dpt_features: DPT特征 [B, C', H', W']
         Returns:
             loss: 自适应融合损失
         """
         # 确保特征尺寸一致
         if dpt_features.shape != unet_features.shape:
+            # 调整DPT特征到UNet特征的尺寸
             dpt_features = F.interpolate(dpt_features, size=unet_features.shape[-2:], 
                                        mode='bilinear', align_corners=False)
+            
+            # 如果通道数不匹配，调整通道数
+            if dpt_features.shape[1] != unet_features.shape[1]:
+                if dpt_features.shape[1] > unet_features.shape[1]:
+                    # DPT特征通道数更多，使用1x1卷积降维
+                    if not hasattr(self, 'dpt_projection'):
+                        self.dpt_projection = nn.Conv2d(dpt_features.shape[1], unet_features.shape[1], 
+                                                      kernel_size=1).to(dpt_features.device)
+                    dpt_features = self.dpt_projection(dpt_features)
+                else:
+                    # DPT特征通道数更少，重复通道
+                    repeat_factor = unet_features.shape[1] // dpt_features.shape[1]
+                    remainder = unet_features.shape[1] % dpt_features.shape[1]
+                    dpt_features = dpt_features.repeat(1, repeat_factor, 1, 1)
+                    if remainder > 0:
+                        padding = dpt_features[:, :remainder, :, :]
+                        dpt_features = torch.cat([dpt_features, padding], dim=1)
         
         # 计算融合质量
         unet_sim = F.cosine_similarity(fused_features, unet_features, dim=1)

@@ -24,7 +24,10 @@ class Metricator():
         self.lpips_net = lpips_lib.LPIPS(net='vgg').to(device)
     def compute_metrics(self, image, target):
         lpips = self.lpips_net( image.unsqueeze(0) * 2 - 1, target.unsqueeze(0) * 2 - 1).item()
-        psnr = -10 * torch.log10(torch.mean((image - target) ** 2, dim=[0, 1, 2])).item()
+        mse = torch.mean((image - target) ** 2, dim=[0, 1, 2])
+        # Add small epsilon to prevent log(0) which causes inf PSNR
+        epsilon = 1e-10
+        psnr = -10 * torch.log10(mse + epsilon).item()
         ssim = ssim_fn(image, target).item()
         return psnr, ssim, lpips
 

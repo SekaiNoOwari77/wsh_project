@@ -1,0 +1,1 @@
+{"training_fusion_loss":1.75790326261201,"_timestamp":1.7621598035608692e+09,"_runtime":27.195842467,"_step":20,"training_l12_loss":-1.3864532176433837,"training_dpt_loss":1.8461474987878488,"training_consistency_loss":1.1106741300178233,"_wandb":{"runtime":27},"training_loss":1.8472765734283283,"training_lpips_loss":-0.31557390327322415}

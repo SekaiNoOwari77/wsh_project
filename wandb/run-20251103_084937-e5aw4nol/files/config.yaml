@@ -1,0 +1,158 @@
+_wandb:
+    value:
+        cli_version: 0.21.3
+        e:
+            h1l9x25px8nzc9nixzqxcwou4hdclffg:
+                args:
+                    - --config-path
+                    - /202421000505/wsh_project/refine_splatter/splatter-image_dpt/experiments_out/2025-11-02/14-28-42/.hydra
+                    - --config-name
+                    - config
+                    - hydra.run.dir=/202421000505/wsh_project/refine_splatter/splatter-image_dpt/experiments_out/2025-11-02/14-28-42
+                    - opt.iterations=104000
+                    - opt.pretrained_ckpt=null
+                codePath: train_network.py
+                codePathLocal: train_network.py
+                cpu_count: 32
+                cpu_count_logical: 64
+                cudaVersion: "12.4"
+                disk:
+                    /:
+                        total: "1888559353856"
+                        used: "1671663063040"
+                email: qq2605076296@gmail.com
+                executable: /opt/conda/envs/splatter-image/bin/python
+                git:
+                    commit: 8ace2f8eb146a9e4e057e59edcf766768b1dbbaa
+                    remote: https://github.com/SekaiNoOwari77/Refine_SplatterImage.git
+                gpu: NVIDIA GeForce RTX 3090
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ampere
+                      cudaCores: 10496
+                      memoryTotal: "25769803776"
+                      name: NVIDIA GeForce RTX 3090
+                      uuid: GPU-cb4694bd-b9aa-6035-32d7-2969ce3ec3e3
+                host: ca2a25e00c0f
+                memory:
+                    total: "473038086144"
+                os: Linux-6.8.0-47-generic-x86_64-with-glibc2.17
+                program: train_network.py
+                python: CPython 3.8.20
+                root: /202421000505/wsh_project/refine_splatter/splatter-image_dpt
+                startedAt: "2025-11-03T08:49:37.292331Z"
+                writerId: h1l9x25px8nzc9nixzqxcwou4hdclffg
+        m: []
+        python_version: 3.8.20
+        t:
+            "1":
+                - 1
+                - 11
+                - 41
+                - 49
+                - 50
+                - 51
+                - 105
+                - 106
+            "2":
+                - 1
+                - 11
+                - 41
+                - 49
+                - 50
+                - 51
+                - 105
+                - 106
+            "3":
+                - 16
+                - 61
+            "4": 3.8.20
+            "5": 0.21.3
+            "6": 4.46.3
+            "10":
+                - 20
+            "12": 0.21.3
+            "13": linux-x86_64
+cam_embd:
+    value:
+        dimension: 0
+        embedding: null
+        encode_embedding: null
+        method: null
+data:
+    value:
+        category: objaverse
+        fov: 49.134342641202636
+        input_images: 1
+        origin_distances: false
+        subset: -1
+        training_resolution: 128
+        white_background: true
+        zfar: 3.2
+        znear: 0.8
+general:
+    value:
+        device: 0
+        mixed_precision: true
+        num_devices: 1
+        random_seed: 0
+logging:
+    value:
+        ckpt_iterations: 1000
+        loop_log: 10000
+        loss_log: 10
+        render_log: 10000
+        val_log: 10000
+model:
+    value:
+        attention_resolutions:
+            - 16
+        base_dim: 128
+        cross_view_attention: true
+        depth_bias: 0
+        depth_scale: 1
+        dpt_consistency_weight: 18
+        dpt_depth_weight: 2
+        dpt_fusion_weight: 36
+        dpt_model_path: /202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/model_cache/dpt-large
+        inverted_x: false
+        inverted_y: true
+        isotropic: false
+        max_sh_degree: 1
+        name: SingleUNet
+        network_with_offset: true
+        network_without_offset: false
+        num_blocks: 4
+        opacity_bias: -2
+        opacity_scale: 1
+        scale_bias: 0.02
+        scale_scale: 0.003
+        use_dpt_fusion: true
+        xyz_bias: 0
+        xyz_scale: 0.1
+opt:
+    value:
+        base_lr: 6e-05
+        batch_size: 8
+        betas:
+            - 0.9
+            - 0.999
+        ema:
+            beta: 0.9999
+            update_after_step: 100
+            update_every: 10
+            use: true
+        fusion_warmup_steps: 1500
+        gradient_clip_val: 0.5
+        imgs_per_obj: 4
+        iterations: 104000
+        lambda_lpips: 0.32
+        loss: l2
+        lr_decay_steps: 15000
+        pretrained_ckpt: null
+        progressive_training: false
+        save_interval: 1000
+        warmup_steps: 1000
+wandb:
+    value:
+        project: gs_pred

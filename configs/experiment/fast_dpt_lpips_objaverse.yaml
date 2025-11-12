@@ -13,9 +13,9 @@ data:
   fov: 49.134342641202636
 
 opt:
-  batch_size: 4  # 小批量，适合低内存 GPU
-  iterations: 10000  # 增加训练步数
-  pretrained_ckpt: null
+  batch_size: 8  # 小批量，适合低内存 GPU
+  iterations: 10001  # 增加训练步数
+  pretrained_ckpt: /202421000505/wsh_project/refine_splatter/splatter-image_dpt/experiments_out/base_model/
   lambda_lpips: 0.34
   base_lr: 0.0002  # 稍微提高学习率
   save_interval: 1000  # 每 1000 步保存
@@ -25,11 +25,12 @@ opt:
   gradient_clip_val: 0.5  # 更严格的梯度裁剪
   # 渐进式训练
   progressive_training: true
-  fusion_warmup_steps: 2000  # DPT融合预热步数
+  fusion_warmup_steps: 500  # DPT融合预热步数
 
 model:
   use_dpt_fusion: true  # 启用DPT特征融合
-  dpt_model_path: "/202421000505/wsh_project/refine_splatter/splatter-image/scene/model_cache/dpt-large"
+  dpt_model_path: "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/model_cache/dpt-large"
   # 增强的DPT融合参数
+  dpt_depth_weight: 0.1  # 深度感知损失权重
+  dpt_consistency_weight: 0.05  # 特征一致性损失权重
   dpt_fusion_weight: 0.1  # DPT融合损失权重
-  feature_consistency_weight: 0.05  # 特征一致性损失权重

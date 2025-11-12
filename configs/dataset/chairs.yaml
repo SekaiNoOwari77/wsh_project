@@ -14,3 +14,16 @@ model:
   scale_bias: 0.02
   xyz_scale: 0.000001
   xyz_bias: 0.0
+  # DPT特征融合配置
+  use_dpt_fusion: true  # 启用DPT特征融合
+  dpt_model_path: "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/model_cache/Depth-Anything-v2"
+  dpt_depth_weight: 2.0  # 深度感知损失权重 1.0
+  dpt_consistency_weight: 18.0  # 特征一致性损失权重 10.0
+  dpt_fusion_weight: 36.0  # DPT融合损失权重 20.0
+
+opt:
+  batch_size: 4
+  iterations: 100001
+  # 渐进式DPT融合训练
+  progressive_training: true
+  fusion_warmup_steps: 2000  # DPT融合预热步数

@@ -6,97 +6,122 @@ import os
 
 
 class DPTFeatureExtractor(nn.Module):
-    """增强的DPT特征提取器，使用深度感知的特征提取"""
+    """DPT特征提取器，使用预训练的DPT模型"""
     
-    def __init__(self, model_path="/202421000505/wsh_project/refine_splatter/splatter-image/scene/model_cache/dpt-large"):
+    def __init__(self, model_path="/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/model_cache/dpt-large/"):
         super().__init__()
+        # 预设特征维度
+        self.feature_dim = 1024
         
-        # 预计算特征维度
-        self.feature_dim = 1024  # DPT-Large的隐藏维度
+        # 加载DPT模型
+        try:
+            if os.path.exists(model_path):
+                print(f"Loading DPT model from {model_path}")
+                self.dpt_model = DPTForDepthEstimation.from_pretrained(model_path)
+                self.processor = DPTImageProcessor.from_pretrained(model_path)
+            else:
+                print(f"DPT model path {model_path} not found, loading from HuggingFace")
+                self.dpt_model = DPTForDepthEstimation.from_pretrained("Intel/dpt-large")
+                self.processor = DPTImageProcessor.from_pretrained("Intel/dpt-large")
+        except Exception as e:
+            msg = f"Failed to load DPT model: {e}"
+            print(msg)
+            raise RuntimeError(msg)
         
-        # 创建深度感知的特征提取器
-        # 使用更深的网络和注意力机制来提取丰富的深度特征
-        self.depth_encoder = nn.Sequential(
-            # 第一层：大卷积核捕获全局特征
-            nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-            
-            # 第二层：残差块
-            self._make_residual_block(64, 128, stride=2),
-            
-            # 第三层：残差块
-            self._make_residual_block(128, 256, stride=2),
-            
-            # 第四层：残差块
-            self._make_residual_block(256, 512, stride=2),
-            
-            # 第五层：最终特征提取
-            nn.Conv2d(512, self.feature_dim, kernel_size=3, stride=1, padding=1),
+        # 冻结DPT模型的参数（可选）
+        for param in self.dpt_model.parameters():
+            param.requires_grad = False
+        self.dpt_model.eval()
+        
+        # 特征后处理网络
+        self.feature_postprocess = nn.Sequential(
+            nn.Conv2d(self.feature_dim, self.feature_dim, kernel_size=3, padding=1),
             nn.BatchNorm2d(self.feature_dim),
             nn.ReLU(inplace=True),
+            nn.Conv2d(self.feature_dim, self.feature_dim, kernel_size=1),
+            nn.BatchNorm2d(self.feature_dim),
         )
-        
-        # 添加空间注意力机制
-        self.spatial_attention = nn.Sequential(
-            nn.Conv2d(self.feature_dim, self.feature_dim // 16, kernel_size=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(self.feature_dim // 16, 1, kernel_size=1),
-            nn.Sigmoid()
-        )
-        
-        # 添加通道注意力机制
-        self.channel_attention = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(self.feature_dim, self.feature_dim // 16, kernel_size=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(self.feature_dim // 16, self.feature_dim, kernel_size=1),
-            nn.Sigmoid()
-        )
-        
-        # 初始化权重
-        self._initialize_weights()
-        
-    def _make_residual_block(self, in_channels, out_channels, stride=1):
-        """创建残差块"""
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(out_channels),
-        )
-        
-    def _initialize_weights(self):
-        """初始化权重"""
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.BatchNorm2d):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
         
         
     def forward(self, x):
         """
-        提取增强的深度感知特征
+        提取DPT深度感知特征
         Args:
             x: 输入图像 [B, C, H, W]
         Returns:
-            features: 增强的深度特征 [B, 1024, H', W']
+            features: DPT深度特征 [B, 1024, H', W']
         """
-        # 提取基础特征
-        features = self.depth_encoder(x)
+        if self.dpt_model is None:
+            raise RuntimeError("DPT model not loaded. Cannot extract features.")
+        # 使用真正的DPT模型提取特征
+        with torch.no_grad():
+            # 简化预处理：直接使用tensor输入
+            # DPT模型期望输入在[-1, 1]范围内
+            if x.max() > 1.0:  # 如果输入在[0, 1]范围
+                x_normalized = x * 2.0 - 1.0
+            else:
+                x_normalized = x
+            
+            # 调整输入尺寸到DPT期望的尺寸
+            if x_normalized.shape[-1] != 384 or x_normalized.shape[-2] != 384:
+                x_resized = F.interpolate(x_normalized, size=(384, 384), mode='bilinear', align_corners=False)
+            else:
+                x_resized = x_normalized
+            
+            # 通过DPT模型获取特征
+            outputs = self.dpt_model(x_resized, output_hidden_states=True)
+            
+            # 获取中间特征（通常是encoder的最后一层）
+            if hasattr(outputs, 'hidden_states') and outputs.hidden_states:
+                # 使用最后一个隐藏状态作为特征
+                hidden_state = outputs.hidden_states[-1]
+                
+                # 检查hidden_state的维度
+                if len(hidden_state.shape) == 3:  # [B, seq_len, hidden_dim]
+                    # 如果是1D序列，需要reshape为2D特征图
+                    batch_size, seq_len, hidden_dim = hidden_state.shape
+                    # 假设是正方形特征图
+                    spatial_size = int(seq_len ** 0.5)
+                    if spatial_size * spatial_size == seq_len:
+                        features = hidden_state.view(batch_size, hidden_dim, spatial_size, spatial_size)
+                    else:
+                        # 如果不是完全平方数，使用自定义尺寸
+                        features = hidden_state.view(batch_size, hidden_dim, -1, 1)
+                        features = F.interpolate(features, size=(24, 24), mode='bilinear', align_corners=False)
+                else:
+                    features = hidden_state
+            else:
+                # 如果没有hidden_states，使用深度预测结果
+                features = outputs.predicted_depth
+                # 调整通道数到1024
+                if features.shape[1] != self.feature_dim:
+                    # 重复通道以匹配1024维
+                    repeat_factor = self.feature_dim // features.shape[1]
+                    features = features.repeat(1, repeat_factor, 1, 1)
+                    if features.shape[1] < self.feature_dim:
+                        # 如果还不够，用零填充
+                        padding = torch.zeros(features.shape[0], self.feature_dim - features.shape[1], 
+                                            features.shape[2], features.shape[3], device=features.device)
+                        features = torch.cat([features, padding], dim=1)
+            
+            # 确保特征有正确的维度
+            if len(features.shape) != 4:
+                print(f"Warning: Unexpected feature shape {features.shape}, reshaping...")
+                if len(features.shape) == 3:
+                    batch_size, seq_len, hidden_dim = features.shape
+                    spatial_size = int(seq_len ** 0.5)
+                    if spatial_size * spatial_size == seq_len:
+                        features = features.view(batch_size, hidden_dim, spatial_size, spatial_size)
+                    else:
+                        features = features.view(batch_size, hidden_dim, -1, 1)
+                        features = F.interpolate(features, size=(24, 24), mode='bilinear', align_corners=False)
+            
+            # 调整特征尺寸到原始输入尺寸
+            if features.shape[-2:] != x.shape[-2:]:
+                features = F.interpolate(features, size=x.shape[-2:], mode='bilinear', align_corners=False)
         
-        # 应用空间注意力
-        spatial_att = self.spatial_attention(features)
-        features = features * spatial_att
-        
-        # 应用通道注意力
-        channel_att = self.channel_attention(features)
-        features = features * channel_att
+        # 特征后处理
+        features = self.feature_postprocess(features)
         
         return features
 

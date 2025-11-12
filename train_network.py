@@ -19,6 +19,7 @@ import lpips as lpips_lib
 from eval import evaluate_dataset
 from gaussian_renderer import render_predicted
 from scene.gaussian_predictor import GaussianSplatPredictor
+from scene.enhanced_losses import EnhancedDPTLoss
 from datasets.dataset_factory import get_dataset
 
 
@@ -129,8 +130,16 @@ def main(cfg: DictConfig):
     lambda_lpips = cfg.opt.lambda_lpips
     lambda_l12 = 1.0 - lambda_lpips
 
-    # 简化：不使用复杂的DPT损失函数
-    dpt_loss_fn = None
+    # 初始化DPT损失函数
+    if getattr(cfg.model, 'use_dpt_fusion', False):
+        dpt_loss_fn = EnhancedDPTLoss(
+            depth_weight=getattr(cfg.model, 'dpt_depth_weight', 0.1),
+            consistency_weight=getattr(cfg.model, 'dpt_consistency_weight', 0.05),
+            fusion_weight=getattr(cfg.model, 'dpt_fusion_weight', 0.1)
+        )
+        dpt_loss_fn = fabric.to_device(dpt_loss_fn)
+    else:
+        dpt_loss_fn = None
 
     bg_color = [1, 1, 1] if cfg.data.white_background else [0, 0, 0]
     background = torch.tensor(bg_color, dtype=torch.float32)
@@ -195,10 +204,18 @@ def main(cfg: DictConfig):
                 focals_pixels_pred = None
                 input_images = data["gt_images"][:, :cfg.data.input_images, ...]
 
-            gaussian_splats = gaussian_predictor(input_images,
-                                                data["view_to_world_transforms"][:, :cfg.data.input_images, ...],
-                                                rot_transform_quats,
-                                                focals_pixels_pred)
+            # 获取DPT特征用于损失计算
+            if getattr(cfg.model, 'use_dpt_fusion', False):
+                gaussian_splats, dpt_features_dict = gaussian_predictor(input_images,
+                                                                    data["view_to_world_transforms"][:, :cfg.data.input_images, ...],
+                                                                    rot_transform_quats,
+                                                                    focals_pixels_pred,
+                                                                    return_dpt_features=True)
+            else:
+                gaussian_splats = gaussian_predictor(input_images,
+                                                    data["view_to_world_transforms"][:, :cfg.data.input_images, ...],
+                                                    rot_transform_quats,
+                                                    focals_pixels_pred)
 
 
             if cfg.data.category == "hydrants" or cfg.data.category == "teddybears":
@@ -257,14 +274,33 @@ def main(cfg: DictConfig):
             if cfg.data.category == "hydrants" or cfg.data.category == "teddybears":
                 total_loss = total_loss + big_gaussian_reg_loss + small_gaussian_reg_loss
 
-            # 渐进式DPT融合训练
-            if getattr(cfg.opt, 'progressive_training', False) and getattr(cfg.model, 'use_dpt_fusion', False):
-                fusion_warmup_steps = getattr(cfg.opt, 'fusion_warmup_steps', 2000)
-                if iteration < fusion_warmup_steps:
-                    # 在预热阶段，逐渐增加DPT融合的权重
-                    fusion_weight = min(iteration / fusion_warmup_steps, 1.0)
-                    # 这里可以添加渐进式融合的逻辑
-                    pass
+            # 计算DPT融合损失
+            dpt_loss_sum = 0.0
+            dpt_loss_dict = {}
+            if getattr(cfg.model, 'use_dpt_fusion', False) and dpt_loss_fn is not None and 'dpt_features_dict' in locals():
+                # 获取DPT特征
+                dpt_features = dpt_features_dict['dpt_features']
+                unet_features = dpt_features_dict['unet_features'] 
+                fused_features = dpt_features_dict['fused_features']
+                
+                # 计算DPT损失
+                dpt_loss_sum, dpt_loss_dict = dpt_loss_fn(
+                    pred_depth=None,  # 暂时不计算深度损失
+                    gt_depth=None,
+                    unet_features=unet_features,
+                    dpt_features=dpt_features,
+                    fused_features=fused_features
+                )
+                
+                # 渐进式DPT融合训练
+                if getattr(cfg.opt, 'progressive_training', False):
+                    fusion_warmup_steps = getattr(cfg.opt, 'fusion_warmup_steps', 2000)
+                    if iteration < fusion_warmup_steps:
+                        # 在预热阶段，逐渐增加DPT融合的权重
+                        fusion_weight = min(iteration / fusion_warmup_steps, 1.0)
+                        dpt_loss_sum = dpt_loss_sum * fusion_weight
+                
+                total_loss = total_loss + dpt_loss_sum
 
             assert not total_loss.isnan(), "Found NaN loss!"
             print("finished forward {} on process {}".format(iteration, fabric.global_rank))
@@ -309,6 +345,12 @@ def main(cfg: DictConfig):
                             srl_for_log = small_gaussian_reg_loss.item()
                         wandb.log({"reg_loss_big": np.log10(brl_for_log + 1e-8)}, step=iteration)
                         wandb.log({"reg_loss_small": np.log10(srl_for_log + 1e-8)}, step=iteration)
+                    
+                    # 记录DPT损失
+                    if getattr(cfg.model, 'use_dpt_fusion', False) and dpt_loss_sum > 0:
+                        wandb.log({"training_dpt_loss": np.log10(dpt_loss_sum.item() + 1e-8)}, step=iteration)
+                        for loss_name, loss_value in dpt_loss_dict.items():
+                            wandb.log({f"training_{loss_name}": np.log10(loss_value + 1e-8)}, step=iteration)
 
                 if (iteration % cfg.logging.render_log == 0 or iteration == 1) and fabric.is_global_zero:
                     wandb.log({"render": wandb.Image(image.clamp(0.0, 1.0).permute(1, 2, 0).detach().cpu().numpy())}, step=iteration)
@@ -393,6 +435,74 @@ def main(cfg: DictConfig):
                     print("\n[ITER {}] Saving new best checkpoint PSNR:{:.2f}".format(
                         iteration + 1, best_PSNR))
                 torch.cuda.empty_cache()
+
+            # ============ Adaptive DPT weight update (on validation) ============
+            if (iteration + 1) % cfg.logging.val_log == 0 and getattr(cfg.model, 'use_dpt_fusion', False) and dpt_loss_fn is not None and fabric.is_global_zero:
+                # Read current weights
+                cur_depth = float(getattr(dpt_loss_fn.depth_loss, 'alpha', 0.0))
+                cur_cons = float(getattr(dpt_loss_fn.depth_loss, 'beta', 0.0))  # same as consistency in DepthAwareLoss
+                cur_cons_feat = float(getattr(dpt_loss_fn.consistency_loss, 'weight', cur_cons))
+                # prefer explicit FeatureConsistencyLoss weight if set
+                cur_cons = cur_cons_feat if cur_cons_feat is not None else cur_cons
+                cur_fuse = float(getattr(dpt_loss_fn.fusion_loss, 'fusion_weight', 0.0))
+
+                if getattr(cfg.model, 'dynamic_dpt_weights', False):
+                    # Targets and factors
+                    dcfg = getattr(cfg.model, 'dpt_dynamic', {})
+                    psnr_target = float(getattr(dcfg, 'psnr_target', 24.0))
+                    ssim_target = float(getattr(dcfg, 'ssim_target', 0.82))
+                    lpips_target = float(getattr(dcfg, 'lpips_target', 0.18))
+                    up_factor = float(getattr(dcfg, 'up_factor', 0.10))
+                    down_factor = float(getattr(dcfg, 'down_factor', 0.05))
+                    # clamps
+                    min_depth = float(getattr(dcfg, 'min_depth', 0.01))
+                    max_depth = float(getattr(dcfg, 'max_depth', 10.0))
+                    min_cons = float(getattr(dcfg, 'min_consistency', 0.01))
+                    max_cons = float(getattr(dcfg, 'max_consistency', 50.0))
+                    min_fuse = float(getattr(dcfg, 'min_fusion', 0.01))
+                    max_fuse = float(getattr(dcfg, 'max_fusion', 50.0))
+
+                    # Copy current
+                    new_depth = cur_depth
+                    new_cons = cur_cons
+                    new_fuse = cur_fuse
+
+                    # Heuristic adjustments:
+                    # - If PSNR below target, increase depth weight
+                    if scores.get('PSNR_novel', psnr_target) < psnr_target:
+                        new_depth = new_depth * (1.0 + up_factor)
+                    else:
+                        new_depth = new_depth * (1.0 - down_factor)
+
+                    # - If SSIM below target, increase fusion weight (encourage better structural fusion)
+                    if scores.get('SSIM_novel', ssim_target) < ssim_target:
+                        new_fuse = new_fuse * (1.0 + up_factor)
+                    else:
+                        new_fuse = new_fuse * (1.0 - down_factor)
+
+                    # - If LPIPS above target (worse), increase consistency weight; else decay
+                    if scores.get('LPIPS_novel', lpips_target) > lpips_target:
+                        new_cons = new_cons * (1.0 + up_factor)
+                    else:
+                        new_cons = new_cons * (1.0 - down_factor)
+
+                    # Clamp
+                    new_depth = float(np.clip(new_depth, min_depth, max_depth))
+                    new_cons = float(np.clip(new_cons, min_cons, max_cons))
+                    new_fuse = float(np.clip(new_fuse, min_fuse, max_fuse))
+
+                    # Apply back to loss modules
+                    setattr(dpt_loss_fn.depth_loss, 'alpha', new_depth)
+                    setattr(dpt_loss_fn.depth_loss, 'beta', new_cons)
+                    setattr(dpt_loss_fn.consistency_loss, 'weight', new_cons)
+                    setattr(dpt_loss_fn.fusion_loss, 'fusion_weight', new_fuse)
+
+                    # Log updates
+                    wandb.log({
+                        'dpt_depth_weight': new_depth,
+                        'dpt_consistency_weight': new_cons,
+                        'dpt_fusion_weight': new_fuse,
+                    }, step=iteration+1)
 
             # ============ Model saving =================
             for fname_to_save in fnames_to_save:

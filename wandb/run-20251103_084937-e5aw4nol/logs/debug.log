@@ -1,0 +1,23 @@
+2025-11-03 08:49:37,293 INFO    MainThread:2082791 [wandb_setup.py:_flush():81] Current SDK version is 0.21.3
+2025-11-03 08:49:37,294 INFO    MainThread:2082791 [wandb_setup.py:_flush():81] Configure stats pid to 2082791
+2025-11-03 08:49:37,294 INFO    MainThread:2082791 [wandb_setup.py:_flush():81] Loading settings from /root/.config/wandb/settings
+2025-11-03 08:49:37,294 INFO    MainThread:2082791 [wandb_setup.py:_flush():81] Loading settings from /202421000505/wsh_project/refine_splatter/splatter-image_dpt/wandb/settings
+2025-11-03 08:49:37,294 INFO    MainThread:2082791 [wandb_setup.py:_flush():81] Loading settings from environment variables
+2025-11-03 08:49:37,294 INFO    MainThread:2082791 [wandb_init.py:setup_run_log_directory():686] Logging user logs to /202421000505/wsh_project/refine_splatter/splatter-image_dpt/wandb/run-20251103_084937-e5aw4nol/logs/debug.log
+2025-11-03 08:49:37,294 INFO    MainThread:2082791 [wandb_init.py:setup_run_log_directory():687] Logging internal logs to /202421000505/wsh_project/refine_splatter/splatter-image_dpt/wandb/run-20251103_084937-e5aw4nol/logs/debug-internal.log
+2025-11-03 08:49:37,294 INFO    MainThread:2082791 [wandb_init.py:init():813] calling init triggers
+2025-11-03 08:49:37,294 INFO    MainThread:2082791 [wandb_init.py:init():818] wandb.init called with sweep_config: {}
+config: {'wandb': {'project': 'gs_pred'}, 'cam_embd': {'embedding': None, 'encode_embedding': None, 'dimension': 0, 'method': None}, 'general': {'device': 0, 'random_seed': 0, 'num_devices': 1, 'mixed_precision': True}, 'data': {'training_resolution': 128, 'subset': -1, 'input_images': 1, 'origin_distances': False, 'znear': 0.8, 'zfar': 3.2, 'category': 'objaverse', 'white_background': True, 'fov': 49.134342641202636}, 'opt': {'iterations': 104000, 'base_lr': 6e-05, 'batch_size': 8, 'betas': [0.9, 0.999], 'loss': 'l2', 'imgs_per_obj': 4, 'ema': {'use': True, 'update_every': 10, 'update_after_step': 100, 'beta': 0.9999}, 'lambda_lpips': 0.32, 'pretrained_ckpt': None, 'save_interval': 1000, 'warmup_steps': 1000, 'lr_decay_steps': 15000, 'gradient_clip_val': 0.5, 'progressive_training': False, 'fusion_warmup_steps': 1500}, 'model': {'max_sh_degree': 1, 'inverted_x': False, 'inverted_y': True, 'name': 'SingleUNet', 'opacity_scale': 1.0, 'opacity_bias': -2.0, 'scale_bias': 0.02, 'scale_scale': 0.003, 'xyz_scale': 0.1, 'xyz_bias': 0.0, 'depth_scale': 1.0, 'depth_bias': 0.0, 'network_without_offset': False, 'network_with_offset': True, 'attention_resolutions': [16], 'num_blocks': 4, 'cross_view_attention': True, 'base_dim': 128, 'isotropic': False, 'use_dpt_fusion': True, 'dpt_model_path': '/202421000505/wsh_project/refine_splatter/splatter-image_dpt/scene/model_cache/dpt-large', 'dpt_depth_weight': 2.0, 'dpt_consistency_weight': 18.0, 'dpt_fusion_weight': 36.0}, 'logging': {'ckpt_iterations': 1000, 'val_log': 10000, 'loss_log': 10, 'loop_log': 10000, 'render_log': 10000}, '_wandb': {}}
+2025-11-03 08:49:37,294 INFO    MainThread:2082791 [wandb_init.py:init():854] starting backend
+2025-11-03 08:49:37,548 INFO    MainThread:2082791 [wandb_init.py:init():857] sending inform_init request
+2025-11-03 08:49:37,615 INFO    MainThread:2082791 [wandb_init.py:init():865] backend started and connected
+2025-11-03 08:49:37,624 INFO    MainThread:2082791 [wandb_init.py:init():936] updated telemetry
+2025-11-03 08:49:37,681 INFO    MainThread:2082791 [wandb_init.py:init():960] communicating run to backend with 90.0 second timeout
+2025-11-03 08:49:38,592 INFO    MainThread:2082791 [wandb_init.py:init():1011] starting run threads in backend
+2025-11-03 08:49:38,801 INFO    MainThread:2082791 [wandb_run.py:_console_start():2494] atexit reg
+2025-11-03 08:49:38,801 INFO    MainThread:2082791 [wandb_run.py:_redirect():2342] redirect: wrap_raw
+2025-11-03 08:49:38,801 INFO    MainThread:2082791 [wandb_run.py:_redirect():2411] Wrapping output streams.
+2025-11-03 08:49:38,801 INFO    MainThread:2082791 [wandb_run.py:_redirect():2434] Redirects installed.
+2025-11-03 08:49:38,806 INFO    MainThread:2082791 [wandb_init.py:init():1057] run started, returning control to user process
+2025-11-03 08:50:05,794 INFO    wandb-AsyncioManager-main:2082791 [service_client.py:_forward_responses():84] Reached EOF.
+2025-11-03 08:50:05,794 INFO    wandb-AsyncioManager-main:2082791 [mailbox.py:close():137] Closing mailbox, abandoning 1 handles.

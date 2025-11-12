@@ -37,11 +37,11 @@ def main():
     model_cfg = OmegaConf.load(
         os.path.join(
             os.path.dirname(os.path.abspath(__file__)), 
-                    "gradio_config.yaml"
+                    "gradio_config_base.yaml"
                     ))
 
-    model_path = hf_hub_download(repo_id="szymanowiczs/splatter-image-multi-category-v1", 
-                                filename="model_latest.pth")
+    model_path = "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/experiments_out/base_model/model_latest.pth"
+    #model_path = "/202421000505/wsh_project/refine_splatter/splatter-image_dpt/experiments_out/2025-10-31/00-50-24/model_latest.pth"
 
     model = GaussianSplatPredictor(model_cfg)
 
